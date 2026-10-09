@@ -6,6 +6,8 @@ export type ReaderFont = 'serif' | 'sans' | 'mono'
 export type ReadMode = 'hold' | 'tap'
 export type PivotColor = 'coral' | 'blue' | 'green' | 'violet' | 'ink'
 export type Lang = 'auto' | 'es' | 'en'
+export type { PivotMode } from '../core/rsvp/orp'
+import type { PivotMode } from '../core/rsvp/orp'
 
 export interface Settings {
   theme: ThemeName
@@ -13,6 +15,8 @@ export interface Settings {
   /** Multiplier for the RSVP word size. */
   wordScale: number
   pivot: PivotColor
+  /** Which letter is the focus letter: optimal recognition point or the middle one. */
+  pivotMode: PivotMode
   mode: ReadMode
   wpm: number
   smartPauses: boolean
@@ -27,6 +31,7 @@ export const DEFAULT_SETTINGS: Settings = {
   font: 'serif',
   wordScale: 1,
   pivot: 'coral',
+  pivotMode: 'orp',
   mode: 'hold',
   wpm: 300,
   smartPauses: true,

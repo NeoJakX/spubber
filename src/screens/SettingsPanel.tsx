@@ -1,7 +1,7 @@
 import { Minus, Plus } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useT } from '../i18n'
-import { useSettings, type Lang, type PivotColor, type ReaderFont, type ReadMode, type ThemeName } from '../state/settings'
+import { useSettings, type Lang, type PivotColor, type PivotMode, type ReaderFont, type ReadMode, type ThemeName } from '../state/settings'
 import { Segmented, Sheet, Switch } from '../ui/primitives'
 import { WordDisplay } from './reader/WordDisplay'
 
@@ -121,6 +121,19 @@ export function SettingsPanel({ onClose, showPreview = true }: { onClose: () => 
               />
             ))}
           </div>
+        </div>
+        <div className="mt-4">
+          <div className="text-sm font-semibold mb-2">{t('settings.pivotMode')}</div>
+          <Segmented<PivotMode>
+            label={t('settings.pivotMode')}
+            value={s.pivotMode}
+            onChange={(pivotMode) => s.set({ pivotMode })}
+            options={[
+              { value: 'orp', label: t('settings.pivotMode.orp') },
+              { value: 'center', label: t('settings.pivotMode.center') },
+            ]}
+          />
+          <p className="text-sm text-muted mt-2 mb-0">{t(s.pivotMode === 'orp' ? 'settings.pivotMode.orp.desc' : 'settings.pivotMode.center.desc')}</p>
         </div>
         <Row label={t('settings.guides')} htmlFor="guides">
           <Switch id="guides" label={t('settings.guides')} checked={s.guides} onChange={(guides) => s.set({ guides })} />

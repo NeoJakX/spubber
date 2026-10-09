@@ -41,6 +41,14 @@ describe('pivotIndex (ORP)', () => {
     expect(pivotIndex('¿Qué')).toBe(2)
     expect(splitAtPivot('«Hola»,')).toEqual(['«H', 'o', 'la»,'])
   })
+  it('never lands on an inner hyphen', () => {
+    expect(splitAtPivot('fin-positivo,')).toEqual(['fin-', 'p', 'ositivo,'])
+  })
+  it('supports a middle-letter mode', () => {
+    expect(splitAtPivot('hacia', 'center')).toEqual(['ha', 'c', 'ia'])
+    expect(splitAtPivot('«Hola»', 'center')).toEqual(['«H', 'o', 'la»'])
+    expect(splitAtPivot('a', 'center')).toEqual(['', 'a', ''])
+  })
   it('handles words made only of symbols', () => {
     expect(splitAtPivot('—')).toEqual(['', '—', ''])
   })

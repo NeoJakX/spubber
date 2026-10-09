@@ -1,6 +1,6 @@
 import { memo, useLayoutEffect, useRef } from 'react'
 import { splitAtPivot } from '../../core/rsvp/orp'
-import type { ReaderFont } from '../../state/settings'
+import { useSettings, type ReaderFont } from '../../state/settings'
 
 interface Props {
   word: string
@@ -16,7 +16,8 @@ interface Props {
  * enough to fit (long compound words on narrow phones).
  */
 export const WordDisplay = memo(function WordDisplay({ word, font, scale = 1, guides = true, className = '' }: Props) {
-  const [left, pivot, right] = splitAtPivot(word)
+  const pivotMode = useSettings((s) => s.pivotMode)
+  const [left, pivot, right] = splitAtPivot(word, pivotMode)
   const box = useRef<HTMLDivElement>(null)
   const leftRef = useRef<HTMLSpanElement>(null)
   const rightRef = useRef<HTMLSpanElement>(null)
@@ -26,7 +27,8 @@ export const WordDisplay = memo(function WordDisplay({ word, font, scale = 1, gu
     if (!el || !leftRef.current || !rightRef.current) return
     const fit = parseFloat(el.style.getPropertyValue('--fit') || '1')
     const width = el.clientWidth
-    const axis = width * 0.38
+    // The anchor's untransformed left edge is the axis (CSS var --axis).
+    const axis = (leftRef.current.parentElement as HTMLElement | null)?.offsetLeft ?? width / 2
     const pad = 8
     const naturalLeft = leftRef.current.offsetWidth / fit
     const naturalRight = rightRef.current.offsetWidth / fit
@@ -38,7 +40,7 @@ export const WordDisplay = memo(function WordDisplay({ word, font, scale = 1, gu
     )
     const rounded = Math.max(0.4, Math.floor(next * 100) / 100)
     if (Math.abs(rounded - fit) > 0.005) el.style.setProperty('--fit', String(rounded))
-  }, [word, font, scale])
+  }, [word, font, scale, pivotMode])
 
   return (
     <div className={`rsvp ${className}`}>

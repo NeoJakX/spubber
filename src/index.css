@@ -52,7 +52,7 @@
 
 /* ---------- Design tokens ----------
    Layout concept: one fixed optical axis. The reader hangs off a single vertical
-   line at 38% of the width; the accent colour lives only on that axis (the focus
+   line in the centre of the screen; the accent colour lives only on that axis (the focus
    letter and its guide notches) so the eye always knows where to land.          */
 :root {
   --bg: #f4f5f7;
@@ -77,7 +77,7 @@
   --font-serif: 'Literata', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
-  --axis: 38%;
+  --axis: 50%;
   --word-size: clamp(2.25rem, 10vw, 4rem);
   --radius: 14px;
   color-scheme: light;
