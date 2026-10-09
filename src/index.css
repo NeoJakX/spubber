@@ -165,6 +165,12 @@ body,
 #root {
   height: 100%;
 }
+/* Native shells run edge to edge: keep content clear of notches and status bars. */
+#root {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
 body {
   margin: 0;
   background: var(--bg);

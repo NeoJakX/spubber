@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useLocale } from './i18n'
+import { initNative, setSystemBarsDark } from './platform/native'
 import { Library } from './screens/Library'
 import { Reader } from './screens/Reader'
 import { useSettings } from './state/settings'
@@ -25,12 +26,18 @@ function useThemeSync() {
       document.head.appendChild(meta)
     }
     meta.content = bg
+    const dark = theme === 'dark' || (theme === 'system' && window.matchMedia?.('(prefers-color-scheme: dark)').matches)
+    setSystemBarsDark(!!dark)
   }, [theme, pivot, locale])
 }
 
 export default function App() {
   useThemeSync()
   const route = useUi((s) => s.route)
+
+  useEffect(() => {
+    void initNative()
+  }, [])
 
   useEffect(() => {
     const onPop = () => useUi.setState({ route: { name: 'library' } })

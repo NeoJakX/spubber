@@ -12,3 +12,4 @@ android/build
 android/.gradle
 ios/App/Pods
 *.keystore
+design/.literata.ttf

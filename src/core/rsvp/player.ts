@@ -136,6 +136,10 @@ export class RsvpPlayer {
     this.seek(this.state.index + delta)
   }
 
+  setRewindWords(n: number) {
+    this.rewindWords = Math.max(0, Math.round(n))
+  }
+
   setWpm(wpm: number) {
     this.set({ wpm: clampWpm(wpm) })
   }

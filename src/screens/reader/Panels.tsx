@@ -7,20 +7,7 @@ import { db, type BookRecord } from '../../db/db'
 import { useT } from '../../i18n'
 import { useUi } from '../../state/ui'
 import { Sheet } from '../../ui/primitives'
-
-export function excerptAt(stream: TokenStream, index: number, n = 14) {
-  return stream.words.slice(index, index + n).join(' ')
-}
-
-export function chapterIndexAt(book: BookRecord, stream: TokenStream, index: number): number {
-  const block = stream.block[index] ?? 0
-  let ch = 0
-  for (let i = 0; i < book.chapters.length; i++) {
-    if (book.chapters[i].firstBlock <= block) ch = i
-    else break
-  }
-  return ch
-}
+import { chapterIndexAt, excerptAt } from './helpers'
 
 export function TocPanel({
   book,

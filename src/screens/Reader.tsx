@@ -9,7 +9,8 @@ import { formatDuration, useT } from '../i18n'
 import { useSettings } from '../state/settings'
 import { useUi } from '../state/ui'
 import { ContextView } from './reader/ContextView'
-import { BookmarksPanel, chapterIndexAt, excerptAt, TocPanel } from './reader/Panels'
+import { chapterIndexAt, excerptAt } from './reader/helpers'
+import { BookmarksPanel, TocPanel } from './reader/Panels'
 import { WordDisplay } from './reader/WordDisplay'
 import { SettingsPanel } from './SettingsPanel'
 
@@ -76,9 +77,7 @@ function ReaderView({ book, blocks }: Loaded) {
   useEffect(() => () => player.destroy(), [player])
   useEffect(() => player.setStream(stream), [player, stream])
   useEffect(() => player.setWpm(settings.wpm), [player, settings.wpm])
-  useEffect(() => {
-    player.rewindWords = settings.rewindWords
-  }, [player, settings.rewindWords])
+  useEffect(() => player.setRewindWords(settings.rewindWords), [player, settings.rewindWords])
 
   const state = useSyncExternalStore(player.subscribe, player.getState)
   const { index, playing, wpm, finished } = state

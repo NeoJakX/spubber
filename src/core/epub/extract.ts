@@ -32,7 +32,7 @@ function isNoteMarker(el: Element, tag: string): boolean {
   }
   if (tag === 'sup' || tag === 'sub') {
     const text = (el.textContent ?? '').trim()
-    if (text.length <= 4 && /^[\[(]?[\d*†‡§a-z]{1,3}[\])]?$/i.test(text) && el.getElementsByTagName('a').length > 0) {
+    if (text.length <= 4 && /^[[(]?[\d*†‡§a-z]{1,3}[\])]?$/i.test(text) && el.getElementsByTagName('a').length > 0) {
       return true
     }
   }
