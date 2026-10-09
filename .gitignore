@@ -13,3 +13,6 @@ android/.gradle
 ios/App/Pods
 *.keystore
 design/.literata.ttf
+
+# Fixed test-signing key so every CI build can update the previous one
+!android/app/spubber-test.keystore

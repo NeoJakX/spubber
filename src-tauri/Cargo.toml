@@ -1,6 +1,6 @@
 [package]
 name = "spubber"
-version = "0.2.0"
+version = "0.2.1"
 description = "Spubber: speed reading for EPUB books"
 authors = ["Spubber"]
 license = ""

@@ -49,10 +49,14 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npx cap sync android
-      - name: Assemble debug APK (installable for testing)
+      - name: Assemble release APK (signed with the fixed test key)
         working-directory: android
-        run: ./gradlew assembleDebug --no-daemon
-      - run: mv android/app/build/outputs/apk/debug/app-debug.apk spubber-${{ github.ref_name }}-android.apk
+        run: ./gradlew assembleRelease --no-daemon
+      - name: Check the APK signature
+        run: |
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          "$ANDROID_HOME"/build-tools/$(ls "$ANDROID_HOME"/build-tools | sort -V | tail -1)/apksigner verify --print-certs "$APK"
+          mv "$APK" spubber-${{ github.ref_name }}-android.apk
       - uses: actions/upload-artifact@v4
         with:
           name: spubber-android
