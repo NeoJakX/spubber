@@ -16,6 +16,8 @@ export interface PlayerState {
   index: number
   playing: boolean
   wpm: number
+  /** Temporary speed multiplier (gesture mode). Effective speed = wpm × rate, clamped. */
+  rate: number
   /** True once the last word has been shown. */
   finished: boolean
 }
@@ -63,6 +65,7 @@ export class RsvpPlayer {
       index: this.clamp(opts.index ?? 0),
       playing: false,
       wpm: clampWpm(opts.wpm ?? 300),
+      rate: 1,
       finished: false,
     }
   }
@@ -89,7 +92,7 @@ export class RsvpPlayer {
 
   /** Duration in ms the word at `i` stays on screen at the current speed. */
   intervalFor(i: number): number {
-    const base = 60000 / this.state.wpm
+    const base = 60000 / this.effectiveWpm
     const ramp = this.rampStep < RAMP.length ? RAMP[this.rampStep] : 1
     return base * (this.stream.pause[i] ?? 1) * ramp
   }
@@ -138,6 +141,16 @@ export class RsvpPlayer {
 
   setRewindWords(n: number) {
     this.rewindWords = Math.max(0, Math.round(n))
+  }
+
+  /** Words per minute actually used for timing (base speed × gesture rate). */
+  get effectiveWpm() {
+    return clampWpm(this.state.wpm * this.state.rate)
+  }
+
+  setRate(rate: number) {
+    const r = Math.max(0.1, Math.min(10, rate))
+    if (Math.abs(r - this.state.rate) > 0.001) this.set({ rate: r })
   }
 
   setWpm(wpm: number) {

@@ -5,12 +5,14 @@ import { RsvpPlayer } from '../core/rsvp/player'
 import { durationMs, nextSentence, prevSentence, tokenize, type TokenStream } from '../core/rsvp/tokenize'
 import { addBookmark, loadBook, markOpened, savePosition } from '../db/books'
 import type { BookRecord } from '../db/db'
-import { formatDuration, useT } from '../i18n'
-import { useSettings } from '../state/settings'
+import { formatDuration, useT, type MessageKey } from '../i18n'
+import { HINT_SESSIONS, useSettings } from '../state/settings'
 import { useUi } from '../state/ui'
 import { ContextView } from './reader/ContextView'
 import { chapterIndexAt, excerptAt } from './reader/helpers'
 import { BookmarksPanel, TocPanel } from './reader/Panels'
+import { useReaderInput } from './reader/useReaderInput'
+import { useWordFeedback } from './reader/useWordFeedback'
 import { WordDisplay } from './reader/WordDisplay'
 import { SettingsPanel } from './SettingsPanel'
 
@@ -80,7 +82,20 @@ function ReaderView({ book, blocks }: Loaded) {
   useEffect(() => player.setRewindWords(settings.rewindWords), [player, settings.rewindWords])
 
   const state = useSyncExternalStore(player.subscribe, player.getState)
-  const { index, playing, wpm, finished } = state
+  const { index, playing, wpm, finished, rate } = state
+  const stageRef = useRef<HTMLElement>(null)
+  const input = useReaderInput(player, stream, settings.mode, stageRef)
+  const active = playing || input.scrubbing
+  useWordFeedback(player, stream, { haptics: settings.haptics, sound: settings.sound })
+
+  // Count reading sessions per mode so the hint can retire after a few.
+  const countedMode = useRef<string | null>(null)
+  useEffect(() => {
+    if (!active || countedMode.current === settings.mode) return
+    countedMode.current = settings.mode
+    const counts = useSettings.getState().hintCounts
+    setSettings({ hintCounts: { ...counts, [settings.mode]: (counts[settings.mode] ?? 0) + 1 } })
+  }, [active, settings.mode, setSettings])
   const n = stream.words.length
 
   // ---------- persistence ----------
@@ -156,7 +171,7 @@ function ReaderView({ book, blocks }: Loaded) {
         case 'Spacebar':
           e.preventDefault()
           if (e.repeat) return
-          if (mode === 'hold') player.play()
+          if (mode === 'hold' || mode === 'gesture') player.play()
           else player.toggle()
           break
         case 'ArrowLeft':
@@ -190,7 +205,8 @@ function ReaderView({ book, blocks }: Loaded) {
       }
     }
     const up = (e: KeyboardEvent) => {
-      if ((e.key === ' ' || e.key === 'Spacebar') && useSettings.getState().mode === 'hold') {
+      const m = useSettings.getState().mode
+      if ((e.key === ' ' || e.key === 'Spacebar') && (m === 'hold' || m === 'gesture')) {
         e.preventDefault()
         player.pause()
       }
@@ -206,9 +222,9 @@ function ReaderView({ book, blocks }: Loaded) {
     }
   }, [panel, player, stream, changeWpm, quickBookmark, back])
 
-  // ---------- pointer: hold / tap ----------
-  const holdHandlers = useMemo(() => {
-    if (settings.mode === 'hold') {
+  // ---------- play button: press-and-hold in hold/gesture modes, toggle otherwise ----------
+  const playButtonHandlers = useMemo(() => {
+    if (settings.mode === 'hold' || settings.mode === 'gesture') {
       return {
         onPointerDown: (e: React.PointerEvent) => {
           if (e.button !== 0) return
@@ -223,6 +239,14 @@ function ReaderView({ book, blocks }: Loaded) {
     return { onClick: () => player.toggle() }
   }, [settings.mode, player])
 
+  const seekFromContext = useCallback(
+    (i: number) => {
+      if (!input.shouldSuppressClick()) player.seek(i)
+    },
+    [player, input],
+  )
+  const contextOwnsPointer = settings.mode === 'hold' || settings.mode === 'tap'
+
   const openPanel = (p: Panel) => {
     player.pause()
     setPanel(p)
@@ -236,14 +260,16 @@ function ReaderView({ book, blocks }: Loaded) {
   const pct = n > 1 ? (index / (n - 1)) * 100 : 0
   const leftBook = durationMs(stream, wpm, index)
   const leftChapter = durationMs(stream, wpm, index, chapterEnd)
-  const showContext = !playing && !finished && settings.contextOnPause
+  const showContext = !active && !finished && settings.contextOnPause
   const isTouch = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches
-  const hint = settings.mode === 'hold' ? t(isTouch ? 'reader.hint.hold' : 'reader.hint.holdKey') : t(isTouch ? 'reader.hint.tap' : 'reader.hint.tapKey')
+  const hintKey = `reader.hint.${settings.mode}${isTouch ? '' : 'Key'}` as MessageKey
+  const showHint = (settings.hintCounts[settings.mode] ?? 0) < HINT_SESSIONS
+  const hint = showHint && !finished && !active ? t(hintKey) : ''
   const ticks = book.chapters.length <= 80 ? book.chapters.slice(1).map((c) => stream.blockStart[c.firstBlock] / Math.max(1, n - 1)) : []
 
   return (
     <div
-      className={`h-full flex flex-col overflow-hidden ${playing ? 'is-playing' : ''}`}
+      className={`h-full flex flex-col overflow-hidden ${active ? 'is-playing' : ''}`}
       style={{ ['--pivot' as string]: `var(--pivot-${settings.pivot})` }}
     >
       {/* Top bar */}
@@ -268,21 +294,36 @@ function ReaderView({ book, blocks }: Loaded) {
 
       {/* Stage: the whole area is the hold/tap target */}
       <main
-        className="flex-1 min-h-0 flex flex-col select-none cursor-pointer"
-        style={{ touchAction: 'manipulation', WebkitTouchCallout: 'none' }}
+        ref={stageRef}
+        className={`relative flex-1 min-h-0 flex flex-col select-none ${settings.mode === 'scroll' ? 'cursor-ns-resize' : 'cursor-pointer'}`}
+        style={{ touchAction: settings.mode === 'scroll' || settings.mode === 'gesture' ? 'none' : 'manipulation', WebkitTouchCallout: 'none' }}
         onContextMenu={(e) => e.preventDefault()}
         data-testid="stage"
-        {...holdHandlers}
+        data-mode={settings.mode}
+        {...input.handlers}
       >
+        {settings.mode === 'gesture' && playing && (
+          <div className="absolute top-3 inset-x-0 flex justify-center pointer-events-none" aria-live="off">
+            <div className="rounded-full bg-surface-2 px-3 py-1 text-sm font-semibold tabular" data-testid="gesture-rate">
+              ×{rate.toFixed(2)} · {player.effectiveWpm} {t('reader.wpm')}
+            </div>
+          </div>
+        )}
         <div className="flex-[1_1_0] min-h-6" />
         <div className="w-full max-w-3xl mx-auto px-4 flex-none">
           <WordDisplay word={stream.words[index] ?? ''} font={settings.font} scale={settings.wordScale} guides={settings.guides} />
-          <div className="chrome text-center text-sm text-muted h-6 mt-3">{!finished && !playing ? hint : ''}</div>
+          <div className="chrome text-center text-sm text-muted min-h-6 mt-3 px-2" data-testid="hint" style={{ textWrap: 'balance' }}>
+            {hint}
+          </div>
         </div>
         <div className="flex-[1.4_1_0] min-h-0 overflow-y-auto px-4 pt-4 pb-2">
           {showContext && (
-            <div className="max-w-2xl mx-auto chrome cursor-auto" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
-              <ContextView stream={stream} blocks={blocks} index={index} onSeek={seek} />
+            <div
+              className="max-w-2xl mx-auto chrome cursor-auto"
+              onPointerDown={contextOwnsPointer ? (e) => e.stopPropagation() : undefined}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ContextView stream={stream} blocks={blocks} index={index} onSeek={seekFromContext} capturePointer={contextOwnsPointer} />
             </div>
           )}
           {finished && (
@@ -354,7 +395,7 @@ function ReaderView({ book, blocks }: Loaded) {
                 className="w-14 h-14 rounded-full grid place-items-center bg-fg text-bg border-0 shadow-[var(--shadow)] active:scale-95 transition-transform touch-none"
                 aria-label={playing ? t('reader.pause') : t('reader.play')}
                 data-testid="play"
-                {...holdHandlers}
+                {...playButtonHandlers}
                 onKeyDown={(e) => e.key === ' ' && e.preventDefault()}
               >
                 {playing ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="translate-x-[1px]" />}
@@ -368,7 +409,7 @@ function ReaderView({ book, blocks }: Loaded) {
         </div>
       </footer>
 
-      {playing && settings.mode === 'tap' && (
+      {playing && (settings.mode === 'tap' || settings.mode === 'scroll') && (
         <div className="fixed inset-0 z-30" onClick={() => player.pause()} aria-hidden="true" data-testid="tap-to-pause" />
       )}
       {panel === 'toc' && <TocPanel book={book} stream={stream} index={index} onSeek={seek} onClose={() => setPanel(null)} />}

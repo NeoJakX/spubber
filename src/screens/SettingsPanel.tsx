@@ -1,6 +1,7 @@
 import { Minus, Plus } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { useT } from '../i18n'
+import { useT, type MessageKey } from '../i18n'
+import { hapticsSupported, sound as feedbackSound, unlockAudio } from '../platform/feedback'
 import { useSettings, type Lang, type PivotColor, type PivotMode, type ReaderFont, type ReadMode, type ThemeName } from '../state/settings'
 import { Segmented, Sheet, Switch } from '../ui/primitives'
 import { WordDisplay } from './reader/WordDisplay'
@@ -148,9 +149,11 @@ export function SettingsPanel({ onClose, showPreview = true }: { onClose: () => 
           options={[
             { value: 'hold', label: t('settings.mode.hold') },
             { value: 'tap', label: t('settings.mode.tap') },
+            { value: 'scroll', label: t('settings.mode.scroll') },
+            { value: 'gesture', label: t('settings.mode.gesture') },
           ]}
         />
-        <p className="text-sm text-muted mt-2 mb-0">{t(s.mode === 'hold' ? 'settings.mode.hold.desc' : 'settings.mode.tap.desc')}</p>
+        <p className="text-sm text-muted mt-2 mb-0">{t(`settings.mode.${s.mode}.desc` as MessageKey)}</p>
         <Row label={t('settings.smartPauses')} desc={t('settings.smartPauses.desc')} htmlFor="smart">
           <Switch id="smart" label={t('settings.smartPauses')} checked={s.smartPauses} onChange={(smartPauses) => s.set({ smartPauses })} />
         </Row>
@@ -167,6 +170,29 @@ export function SettingsPanel({ onClose, showPreview = true }: { onClose: () => 
               <Plus size={16} />
             </button>
           </div>
+        </Row>
+      </Section>
+
+      <Section title={t('settings.feedback')}>
+        {hapticsSupported() && (
+          <Row label={t('settings.haptics')} desc={t('settings.haptics.desc')} htmlFor="haptics">
+            <Switch id="haptics" label={t('settings.haptics')} checked={s.haptics} onChange={(haptics) => s.set({ haptics })} />
+          </Row>
+        )}
+        <Row label={t('settings.sound')} desc={t('settings.sound.desc')} htmlFor="sound">
+          <Switch
+            id="sound"
+            label={t('settings.sound')}
+            checked={s.sound}
+            onChange={(sound) => {
+              s.set({ sound })
+              if (sound) {
+                // The toggle itself is a user gesture: unlock audio and play a sample.
+                unlockAudio()
+                setTimeout(() => feedbackSound.page(), 60)
+              }
+            }}
+          />
         </Row>
       </Section>
 

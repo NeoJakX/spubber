@@ -12,11 +12,14 @@ export function ContextView({
   blocks,
   index,
   onSeek,
+  capturePointer = true,
 }: {
   stream: TokenStream
   blocks: Block[]
   index: number
   onSeek: (i: number) => void
+  /** When false, presses on words reach the stage (scroll/gesture modes). */
+  capturePointer?: boolean
 }) {
   const cur = stream.block[index] ?? 0
   const first = Math.max(0, cur - 1)
@@ -39,7 +42,7 @@ export function ContextView({
           key={i}
           ref={isCur ? currentRef : undefined}
           className={`w${isCur ? ' current' : ''}`}
-          onPointerDown={(e) => e.stopPropagation()}
+          onPointerDown={capturePointer ? (e) => e.stopPropagation() : undefined}
           onClick={(e) => {
             e.stopPropagation()
             onSeek(i)

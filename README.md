@@ -4,11 +4,17 @@ Lector de EPUB para leer rápido: el libro aparece palabra a palabra (RSVP) y la
 
 Un solo código (React + TypeScript) para la web, Windows (Tauri), Android e iOS (Capacitor). Todo se procesa en el dispositivo: sin servidor y sin cuentas.
 
-## Funciones de la v0.1
+## Funciones
 
 - Biblioteca: importar con un botón o arrastrando archivos, portada, autor, % leído y tiempo restante, borrar libros.
 - Lector RSVP de 100 a 1000 ppm, con pausas naturales (comas, puntos, párrafos, palabras largas y números).
-- Modo **mantener** (lee mientras pulsas o mantienes apretada la barra espaciadora) y modo **toque** (un toque inicia y otro pausa).
+- Cuatro formas de leer:
+  - **Mantener**: lee mientras pulsas, o mientras mantienes apretada la barra espaciadora.
+  - **Toque**: un toque inicia la lectura y otro la pausa.
+  - **Scroll**: avanzas palabra a palabra deslizando el dedo, con inercia, o con la rueda del ratón.
+  - **Gestos**: mantienes pulsado para leer; cuanto más a la derecha, más rápido (hasta ×2), y cuanto más a la izquierda, más lento (hasta ×0,5). Deslizando arriba o abajo saltas de frase.
+- Opcional: vibración ligera en cada palabra (Android/iOS) y sonido suave de papel, con un paso de página entre párrafos.
+- La ayuda en pantalla desaparece tras las tres primeras sesiones de cada modo.
 - Al pausar se muestra el párrafo con la palabra actual resaltada. Si tocas una palabra, la lectura sigue desde ahí.
 - Índice de capítulos, marcadores con nota, barra de progreso con marcas de capítulo y posición guardada automáticamente.
 - Temas claro, oscuro, sepia o el del sistema. Tipografía serif, sans o mono, tamaño de la palabra, color de la letra guía y guías de enfoque.

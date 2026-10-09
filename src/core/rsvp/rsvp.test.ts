@@ -169,6 +169,19 @@ describe('RsvpPlayer', () => {
     expect(p.getState().index).toBe(999)
   })
 
+  it('applies a gesture rate on top of the base speed', () => {
+    const { clock, advance } = fakeClock()
+    const p = new RsvpPlayer(flat, { wpm: 300, clock })
+    p.setRate(2)
+    expect(p.effectiveWpm).toBe(600)
+    p.play()
+    advance(10_000)
+    expect(p.getState().index).toBeGreaterThanOrEqual(98)
+    expect(p.getState().index).toBeLessThanOrEqual(100)
+    p.setRate(10)
+    expect(p.effectiveWpm).toBe(1000)
+  })
+
   it('notifies subscribers', () => {
     const p = new RsvpPlayer(flat)
     let n = 0
@@ -176,5 +189,19 @@ describe('RsvpPlayer', () => {
     p.step(1)
     p.setWpm(400)
     expect(n).toBe(2)
+  })
+})
+
+import { rateFromPosition } from '../../screens/reader/useReaderInput'
+describe('gesture speed mapping', () => {
+  it('keeps the base speed near the centre and spans ×0.5–×2 gradually', () => {
+    expect(rateFromPosition(500, 0, 1000)).toBe(1)
+    expect(rateFromPosition(540, 0, 1000)).toBe(1) // inside the dead zone
+    expect(rateFromPosition(1000, 0, 1000)).toBeCloseTo(2)
+    expect(rateFromPosition(0, 0, 1000)).toBeCloseTo(0.5)
+    const quarter = rateFromPosition(750, 0, 1000)
+    expect(quarter).toBeGreaterThan(1.1)
+    expect(quarter).toBeLessThan(1.4)
+    expect(rateFromPosition(5000, 0, 1000)).toBeCloseTo(2) // clamped
   })
 })

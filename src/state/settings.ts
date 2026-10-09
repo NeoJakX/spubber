@@ -3,7 +3,7 @@ import { createJSONStorage, persist, type StateStorage } from 'zustand/middlewar
 
 export type ThemeName = 'system' | 'light' | 'dark' | 'sepia'
 export type ReaderFont = 'serif' | 'sans' | 'mono'
-export type ReadMode = 'hold' | 'tap'
+export type ReadMode = 'hold' | 'tap' | 'scroll' | 'gesture'
 export type PivotColor = 'coral' | 'blue' | 'green' | 'violet' | 'ink'
 export type Lang = 'auto' | 'es' | 'en'
 export type { PivotMode } from '../core/rsvp/orp'
@@ -24,6 +24,12 @@ export interface Settings {
   contextOnPause: boolean
   rewindWords: number
   lang: Lang
+  /** Vibration tick per word (phones). */
+  haptics: boolean
+  /** Soft paper sound per word and page-turn per paragraph. */
+  sound: boolean
+  /** Reading sessions started per mode; the on-screen hint hides after a few. */
+  hintCounts: Partial<Record<ReadMode, number>>
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -39,7 +45,13 @@ export const DEFAULT_SETTINGS: Settings = {
   contextOnPause: true,
   rewindWords: 3,
   lang: 'auto',
+  haptics: false,
+  sound: false,
+  hintCounts: {},
 }
+
+/** The hint under the word is shown for the first sessions in each mode. */
+export const HINT_SESSIONS = 3
 
 /** localStorage can throw (private mode, sandboxed frames): never let that break the app. */
 const safeStorage: StateStorage = {
