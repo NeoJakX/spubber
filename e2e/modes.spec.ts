@@ -141,3 +141,35 @@ test('haptics option is hidden on desktop', async ({ page, isMobile }) => {
   await expect(page.getByRole('switch', { name: 'Sonido de página' })).toBeVisible()
   await expect(page.getByRole('switch', { name: 'Vibración por palabra' })).toHaveCount(0)
 })
+
+test('help text can be turned off and the whole screen controls reading', async ({ page }) => {
+  await openSample(page)
+  await expect(page.getByTestId('hint')).not.toBeEmpty()
+  await page.getByRole('button', { name: 'Ajustes de lectura' }).click()
+  await page.getByRole('switch', { name: 'Mostrar textos de ayuda' }).click()
+  await page.getByRole('radio', { name: 'Toque' }).click()
+  await page.getByRole('button', { name: 'Close' }).click()
+  await expect(page.getByTestId('hint')).toBeEmpty()
+  // Tapping on the paragraph area (not on a word) starts reading in tap mode.
+  const ctx = (await page.locator('[data-context-scroll]').boundingBox())!
+  await page.mouse.click(ctx.x + ctx.width - 4, ctx.y + ctx.height - 6)
+  await page.waitForTimeout(1500)
+  expect(Number(await page.locator('#progress').inputValue())).toBeGreaterThan(0)
+})
+
+test('landscape phone layout does not overlap', async ({ browser }) => {
+  const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true, locale: 'es-ES' })
+  const page = await ctx.newPage()
+  await openSample(page)
+  const stage = (await page.getByTestId('stage').boundingBox())!
+  const footer = (await page.locator('footer').boundingBox())!
+  const word = (await page.locator('.rsvp-word').boundingBox())!
+  const play = (await page.getByTestId('play').boundingBox())!
+  const progress = (await page.locator('#progress').boundingBox())!
+  expect(stage.y + stage.height).toBeLessThanOrEqual(footer.y + 1)
+  expect(word.y + word.height).toBeLessThan(footer.y)
+  // single control row: play button and progress bar share the same row
+  expect(Math.abs(play.y + play.height / 2 - (progress.y + progress.height / 2))).toBeLessThan(30)
+  expect(footer.y + footer.height).toBeLessThanOrEqual(390)
+  await ctx.close()
+})

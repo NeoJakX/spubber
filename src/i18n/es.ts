@@ -87,6 +87,8 @@ export const es = {
   'settings.mode.hold.desc': 'Lee mientras mantienes pulsado',
   'settings.mode.tap': 'Toque',
   'settings.mode.tap.desc': 'Un toque inicia y otro pausa',
+  'settings.hints': 'Mostrar textos de ayuda',
+  'settings.hints.desc': 'Las instrucciones bajo la palabra. Desactívalo para usar toda la pantalla solo para leer',
   'settings.smartPauses': 'Pausas naturales',
   'settings.smartPauses.desc': 'Más tiempo en comas, puntos, palabras largas y números',
   'settings.pivotMode': 'Letra guía',

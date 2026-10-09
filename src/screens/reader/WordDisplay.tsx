@@ -47,7 +47,7 @@ export const WordDisplay = memo(function WordDisplay({ word, font, scale = 1, gu
       {guides && <div className="rsvp-guide top" />}
       <div
         ref={box}
-        className="rsvp-word my-4"
+        className="rsvp-word"
         data-font={font}
         style={{ ['--word-scale' as string]: scale }}
         aria-live="off"

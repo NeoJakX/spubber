@@ -154,6 +154,9 @@ export function SettingsPanel({ onClose, showPreview = true }: { onClose: () => 
           ]}
         />
         <p className="text-sm text-muted mt-2 mb-0">{t(`settings.mode.${s.mode}.desc` as MessageKey)}</p>
+        <Row label={t('settings.hints')} desc={t('settings.hints.desc')} htmlFor="hints">
+          <Switch id="hints" label={t('settings.hints')} checked={s.hints} onChange={(hints) => s.set({ hints })} />
+        </Row>
         <Row label={t('settings.smartPauses')} desc={t('settings.smartPauses.desc')} htmlFor="smart">
           <Switch id="smart" label={t('settings.smartPauses')} checked={s.smartPauses} onChange={(smartPauses) => s.set({ smartPauses })} />
         </Row>

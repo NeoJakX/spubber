@@ -89,6 +89,8 @@ export const en: Record<MessageKey, string> = {
   'settings.mode.hold.desc': 'Reads while you keep pressing',
   'settings.mode.tap': 'Tap',
   'settings.mode.tap.desc': 'One tap starts, another pauses',
+  'settings.hints': 'Show help text',
+  'settings.hints.desc': 'The instructions under the word. Turn off to use the whole screen just for reading',
   'settings.smartPauses': 'Natural pauses',
   'settings.smartPauses.desc': 'More time on commas, full stops, long words and numbers',
   'settings.pivotMode': 'Focus letter',

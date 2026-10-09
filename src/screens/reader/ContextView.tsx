@@ -27,7 +27,14 @@ export function ContextView({
   const currentRef = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
-    currentRef.current?.scrollIntoView({ block: 'center', behavior: 'instant' as ScrollBehavior })
+    // Scroll only our own container: scrollIntoView would also shift the whole
+    // reader layout (overflow:hidden ancestors are still scrollable by script).
+    const el = currentRef.current
+    const box = el?.closest<HTMLElement>('[data-context-scroll]')
+    if (el && box) {
+      const top = el.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop
+      box.scrollTop = Math.max(0, top - box.clientHeight / 2)
+    }
   }, [index])
 
   const out = []

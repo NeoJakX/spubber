@@ -245,7 +245,6 @@ function ReaderView({ book, blocks }: Loaded) {
     },
     [player, input],
   )
-  const contextOwnsPointer = settings.mode === 'hold' || settings.mode === 'tap'
 
   const openPanel = (p: Panel) => {
     player.pause()
@@ -263,7 +262,7 @@ function ReaderView({ book, blocks }: Loaded) {
   const showContext = !active && !finished && settings.contextOnPause
   const isTouch = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches
   const hintKey = `reader.hint.${settings.mode}${isTouch ? '' : 'Key'}` as MessageKey
-  const showHint = (settings.hintCounts[settings.mode] ?? 0) < HINT_SESSIONS
+  const showHint = settings.hints && (settings.hintCounts[settings.mode] ?? 0) < HINT_SESSIONS
   const hint = showHint && !finished && !active ? t(hintKey) : ''
   const ticks = book.chapters.length <= 80 ? book.chapters.slice(1).map((c) => stream.blockStart[c.firstBlock] / Math.max(1, n - 1)) : []
 
@@ -273,7 +272,7 @@ function ReaderView({ book, blocks }: Loaded) {
       style={{ ['--pivot' as string]: `var(--pivot-${settings.pivot})` }}
     >
       {/* Top bar */}
-      <header className="chrome flex items-center gap-1 px-2 sm:px-3 h-14 flex-none">
+      <header className="reader-header chrome flex items-center gap-1 px-2 sm:px-3 h-14 flex-none">
         <button className="icon-btn" onClick={back} aria-label={t('reader.back')} title={t('reader.back')}>
           <ArrowLeft size={20} />
         </button>
@@ -312,18 +311,14 @@ function ReaderView({ book, blocks }: Loaded) {
         <div className="flex-[1_1_0] min-h-6" />
         <div className="w-full max-w-3xl mx-auto px-4 flex-none">
           <WordDisplay word={stream.words[index] ?? ''} font={settings.font} scale={settings.wordScale} guides={settings.guides} />
-          <div className="chrome text-center text-sm text-muted min-h-6 mt-3 px-2" data-testid="hint" style={{ textWrap: 'balance' }}>
+          <div className="reader-hint chrome text-center text-sm text-muted min-h-6 mt-2 px-2" data-testid="hint" style={{ textWrap: 'balance' }}>
             {hint}
           </div>
         </div>
-        <div className="flex-[1.4_1_0] min-h-0 overflow-y-auto px-4 pt-4 pb-2">
+        <div className="flex-[1.4_1_0] min-h-0 overflow-y-auto px-4 pt-3 pb-2" data-context-scroll>
           {showContext && (
-            <div
-              className="max-w-2xl mx-auto chrome cursor-auto"
-              onPointerDown={contextOwnsPointer ? (e) => e.stopPropagation() : undefined}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <ContextView stream={stream} blocks={blocks} index={index} onSeek={seekFromContext} capturePointer={contextOwnsPointer} />
+            <div className="max-w-2xl mx-auto chrome">
+              <ContextView stream={stream} blocks={blocks} index={index} onSeek={seekFromContext} capturePointer={false} />
             </div>
           )}
           {finished && (
@@ -343,36 +338,36 @@ function ReaderView({ book, blocks }: Loaded) {
       </main>
 
       {/* Bottom controls */}
-      <footer className="flex-none px-4 sm:px-6 pt-1" style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}>
-        <div className="max-w-3xl mx-auto">
-          <div className="chrome-soft relative transition-opacity">
-            <input
-              id="progress"
-              className="range relative z-[1]"
-              type="range"
-              min={0}
-              max={Math.max(0, n - 1)}
-              value={index}
-              aria-label={t('reader.progress')}
-              aria-valuetext={`${Math.round(pct)} %`}
-              style={{ ['--fill' as string]: `${pct}%` }}
-              onChange={(e) => seek(Number(e.target.value))}
-            />
-            <div className="progress-ticks absolute inset-x-0 top-0 h-7 pointer-events-none" aria-hidden="true">
-              {ticks.map((x, i) => (
-                <span key={i} style={{ left: `calc(${x * 100}% - 1px)` }} />
-              ))}
+      <footer className="reader-footer flex-none px-4 sm:px-6 pt-1" style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}>
+        <div className="reader-footer-inner max-w-3xl mx-auto">
+          <div className="rf-progress">
+            <div className="chrome-soft relative transition-opacity">
+              <input
+                id="progress"
+                className="range relative z-[1]"
+                type="range"
+                min={0}
+                max={Math.max(0, n - 1)}
+                value={index}
+                aria-label={t('reader.progress')}
+                aria-valuetext={`${Math.round(pct)} %`}
+                style={{ ['--fill' as string]: `${pct}%` }}
+                onChange={(e) => seek(Number(e.target.value))}
+              />
+              <div className="progress-ticks absolute inset-x-0 top-0 h-7 pointer-events-none" aria-hidden="true">
+                {ticks.map((x, i) => (
+                  <span key={i} style={{ left: `calc(${x * 100}% - 1px)` }} />
+                ))}
+              </div>
+            </div>
+            <div className="chrome flex justify-between gap-3 text-xs text-muted tabular -mt-0.5">
+              <span className="truncate">
+                {Math.floor(pct)} % · {t('reader.chapterLeft', { time: formatDuration(leftChapter, t) })}
+              </span>
+              <span className="flex-none">{t('reader.left', { time: formatDuration(leftBook, t) })}</span>
             </div>
           </div>
-          <div className="chrome flex justify-between gap-3 text-xs text-muted tabular -mt-0.5">
-            <span className="truncate">
-              {Math.floor(pct)} % · {t('reader.chapterLeft', { time: formatDuration(leftChapter, t) })}
-            </span>
-            <span className="flex-none">{t('reader.left', { time: formatDuration(leftBook, t) })}</span>
-          </div>
-
-          <div className="chrome grid grid-cols-[1fr_auto_1fr] items-center gap-2 mt-3">
-            <div className="flex items-center gap-0.5 justify-self-start" role="group" aria-label={t('reader.wpm.long')}>
+            <div className="rf-wpm chrome flex items-center gap-0.5" role="group" aria-label={t('reader.wpm.long')}>
               <button className="icon-btn" onClick={() => changeWpm(-25)} aria-label={t('reader.slower')} disabled={wpm <= 100}>
                 <Minus size={18} />
               </button>
@@ -387,12 +382,12 @@ function ReaderView({ book, blocks }: Loaded) {
               </button>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="rf-transport chrome flex items-center gap-2">
               <button className="icon-btn" onClick={() => seek(prevSentence(stream, index))} aria-label={t('reader.prevSentence')} title={t('reader.prevSentence')}>
                 <ChevronsLeft size={22} />
               </button>
               <button
-                className="w-14 h-14 rounded-full grid place-items-center bg-fg text-bg border-0 shadow-[var(--shadow)] active:scale-95 transition-transform touch-none"
+                className="play-btn rounded-full grid place-items-center bg-fg text-bg border-0 shadow-[var(--shadow)] active:scale-95 transition-transform touch-none"
                 aria-label={playing ? t('reader.pause') : t('reader.play')}
                 data-testid="play"
                 {...playButtonHandlers}
@@ -404,8 +399,6 @@ function ReaderView({ book, blocks }: Loaded) {
                 <ChevronsRight size={22} />
               </button>
             </div>
-            <div />
-          </div>
         </div>
       </footer>
 

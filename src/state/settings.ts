@@ -28,6 +28,8 @@ export interface Settings {
   haptics: boolean
   /** Soft paper sound per word and page-turn per paragraph. */
   sound: boolean
+  /** Show the instructions under the word (they also retire after a few sessions). */
+  hints: boolean
   /** Reading sessions started per mode; the on-screen hint hides after a few. */
   hintCounts: Partial<Record<ReadMode, number>>
 }
@@ -47,6 +49,7 @@ export const DEFAULT_SETTINGS: Settings = {
   lang: 'auto',
   haptics: false,
   sound: false,
+  hints: true,
   hintCounts: {},
 }
 

@@ -48,6 +48,20 @@ export function useReaderInput(player: RsvpPlayer, stream: TokenStream, mode: Re
     idleTimer.current = setTimeout(() => setScrubbing(false), 700)
   }, [])
 
+  /** Long presses anywhere on the stage are reading, not a tap on a word. */
+  const pressStart = useRef(0)
+  const tracker = useMemo(
+    () => ({
+      onPointerDownCapture: () => {
+        pressStart.current = performance.now()
+      },
+      onPointerUpCapture: () => {
+        if (performance.now() - pressStart.current > 250) suppressUntil.current = performance.now() + 150
+      },
+    }),
+    [],
+  )
+
   /** Clicks right after a drag, hold or flick must not seek in the context view. */
   const shouldSuppressClick = useCallback(() => performance.now() < suppressUntil.current, [])
   const suppress = () => {
@@ -238,5 +252,5 @@ export function useReaderInput(player: RsvpPlayer, stream: TokenStream, mode: Re
     return { onClick: () => player.toggle() }
   }, [mode, player, consume, applyRate, endPress])
 
-  return { handlers, scrubbing, shouldSuppressClick }
+  return { handlers: { ...tracker, ...handlers }, scrubbing, shouldSuppressClick }
 }
