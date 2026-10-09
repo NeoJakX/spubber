@@ -1,0 +1,14 @@
+node_modules
+dist
+dist-single
+*.local
+.DS_Store
+coverage
+test-results
+playwright-report
+src-tauri/target
+android/app/build
+android/build
+android/.gradle
+ios/App/Pods
+*.keystore
