@@ -57,6 +57,7 @@ test('tap mode toggles reading with the play button', async ({ page }) => {
 test('keyboard shortcuts change speed and position', async ({ page, isMobile }) => {
   test.skip(isMobile, 'keyboard only')
   await openSample(page)
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
   await page.keyboard.press('ArrowUp')
   await page.keyboard.press('ArrowUp')
   await expect(page.getByTestId('wpm')).toHaveText('350')

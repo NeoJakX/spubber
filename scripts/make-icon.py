@@ -133,3 +133,16 @@ for base in (os.path.join(ROOT, "android/app/src/main/res"), os.path.join(ROOT, 
                     size = im.size
                 splash(*size).save(p)
 print("splash ok")
+
+# ---- Web app (PWA) icons ----
+pub = os.path.join(ROOT, "public", "icons")
+os.makedirs(pub, exist_ok=True)
+W = S * SS
+mask_img = Image.new("RGBA", (W, W), BG)
+draw_glyph(ImageDraw.Draw(mask_img), W, scale=0.78)
+mask_img = mask_img.resize((S, S), Image.LANCZOS).convert("RGB")
+for size in (192, 512):
+    icons["rounded"].resize((size, size), Image.LANCZOS).save(os.path.join(pub, f"icon-{size}.png"))
+    mask_img.resize((size, size), Image.LANCZOS).save(os.path.join(pub, f"maskable-{size}.png"))
+icons["square"].convert("RGB").resize((180, 180), Image.LANCZOS).save(os.path.join(pub, "apple-touch-icon.png"))
+print("pwa icons ok")

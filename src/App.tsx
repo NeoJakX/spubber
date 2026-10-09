@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
-import { useLocale } from './i18n'
+import { translate, useLocale } from './i18n'
 import { initNative, setSystemBarsDark } from './platform/native'
+import { initWebApp, isStandalone } from './platform/webapp'
 import { Library } from './screens/Library'
 import { Reader } from './screens/Reader'
 import { useSettings } from './state/settings'
@@ -35,8 +36,19 @@ export default function App() {
   useThemeSync()
   const route = useUi((s) => s.route)
 
+  const locale = useLocale()
   useEffect(() => {
     void initNative()
+  }, [])
+  useEffect(() => {
+    const t = (k: Parameters<typeof translate>[1]) => translate(locale, k)
+    void initWebApp({
+      onNeedRefresh: (update) =>
+        useUi.getState().toast(t('pwa.update'), { action: { label: t('pwa.update.action'), run: update }, ms: 10 * 60 * 1000 }),
+      // Only worth saying once it is installed; in the browser it would just be noise.
+      onOfflineReady: () => isStandalone() && useUi.getState().toast(t('pwa.offline')),
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- register once
   }, [])
 
   useEffect(() => {

@@ -1,7 +1,7 @@
 {
   "name": "spubber",
   "private": true,
-  "version": "0.2.2",
+  "version": "0.3.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -13,7 +13,8 @@
     "test:e2e": "playwright test",
     "tauri": "tauri",
     "desktop:dev": "tauri dev",
-    "desktop:build": "tauri build"
+    "desktop:build": "tauri build",
+    "build:pages": "tsc -b && vite build --mode pages"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.3",
@@ -48,7 +49,12 @@
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",
     "vite": "^8.3.0",
+    "vite-plugin-pwa": "^2.0.0",
     "vite-plugin-singlefile": "^2.3.3",
-    "vitest": "^5.0.3"
+    "vitest": "^5.0.3",
+    "workbox-core": "^7.4.1",
+    "workbox-precaching": "^7.4.1",
+    "workbox-routing": "^7.4.1",
+    "workbox-window": "^7.4.1"
   }
 }

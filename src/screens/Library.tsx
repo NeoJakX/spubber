@@ -8,6 +8,8 @@ import { formatDuration, useT } from '../i18n'
 import { useSettings } from '../state/settings'
 import { useUi } from '../state/ui'
 import { Cover } from '../ui/Cover'
+import { InstallBanner } from '../ui/InstallBanner'
+import { isIOS, isWebApp, takeSharedFiles } from '../platform/webapp'
 import { Wordmark } from '../ui/primitives'
 import { WordDisplay } from './reader/WordDisplay'
 import { SettingsPanel } from './SettingsPanel'
@@ -30,6 +32,22 @@ export function Library() {
   const fileInput = useRef<HTMLInputElement>(null)
   const [dragging, setDragging] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+
+  // EPUBs shared to the installed web app (Android share sheet).
+  useEffect(() => {
+    if (!isWebApp) return
+    void takeSharedFiles().then((files) => {
+      if (files.length) void importFiles(files)
+    })
+    if (location.search.includes('shared')) {
+      try {
+        history.replaceState(null, '', location.pathname)
+      } catch {
+        /* ignore */
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once on start
+  }, [])
 
   // Whole-window drag & drop.
   useEffect(() => {
@@ -94,7 +112,8 @@ export function Library() {
             ref={fileInput}
             id="epub-input"
             type="file"
-            accept=".epub,application/epub+zip"
+            // iOS greys out .epub files for some accept values: allow any file there and validate after.
+            accept={isIOS() ? undefined : '.epub,application/epub+zip'}
             multiple
             hidden
             onChange={(e) => {
@@ -115,6 +134,7 @@ export function Library() {
       </header>
 
       <main className="mx-auto w-full max-w-6xl px-4 sm:px-6 py-6 sm:py-8 flex-1 flex flex-col gap-10">
+        <InstallBanner />
         {books === undefined ? null : books.length === 0 ? (
           <EmptyState onImport={() => fileInput.current?.click()} onSample={importSample} busy={!!busy} />
         ) : (

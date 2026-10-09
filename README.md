@@ -21,6 +21,17 @@ Un solo código (React + TypeScript) para la web, Windows (Tauri), Android e iOS
 - Interfaz en español e inglés.
 - Atajos de escritorio: `Espacio` lee o pausa, `←/→` avanza o retrocede una palabra (con `Shift`, una frase), `↑/↓` cambia la velocidad, `B` guarda un marcador, `T` abre el índice y `Esc` vuelve a la biblioteca.
 
+## Web app instalable (iPhone, Android, escritorio)
+
+**https://neojakx.github.io/spubber/**
+
+- **iPhone:** abre el enlace en Safari y pulsa **Compartir → Añadir a pantalla de inicio**.
+- **Android y Chrome de escritorio:** pulsa **Instalar** en el aviso que aparece en la biblioteca.
+
+Una vez instalada se abre a pantalla completa y funciona sin conexión. Cuando hay una versión nueva aparece el aviso «Actualizar». En Android puedes compartir un `.epub` desde WhatsApp o Archivos y elegir Spubber para importarlo.
+
+Se publica sola en cada push a `main` (workflow *Web app (GitHub Pages)*). Para generarla en local: `npm run build:pages` (sale en `dist-pages/`).
+
 ## Desarrollo
 
 ```bash
@@ -33,6 +44,7 @@ npm run build && npx playwright test   # tests de extremo a extremo (escritorio 
 | Objetivo | Comando | Requisitos |
 |---|---|---|
 | Web (archivo único) | `npm run build:web` | – |
+| Web app instalable (PWA) | `npm run build:pages` | – |
 | Windows | `npm run desktop:build` | Rust + WebView2 (en Windows) |
 | Android | `npm run build && npx cap sync android && cd android && ./gradlew assembleDebug` | JDK 21 + Android SDK |
 | iOS | `npm run build && npx cap sync ios && npx cap open ios` | macOS + Xcode |

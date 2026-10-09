@@ -1,7 +1,7 @@
 import { Minus, Plus } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useT, type MessageKey } from '../i18n'
-import { hapticsSupported, sound as feedbackSound, unlockAudio } from '../platform/feedback'
+import { hapticsExperimental, hapticsSupported, sound as feedbackSound, unlockAudio } from '../platform/feedback'
 import { useSettings, type Lang, type PivotColor, type PivotMode, type ReaderFont, type ReadMode, type ThemeName } from '../state/settings'
 import { Segmented, Sheet, Switch } from '../ui/primitives'
 import { WordDisplay } from './reader/WordDisplay'
@@ -178,7 +178,11 @@ export function SettingsPanel({ onClose, showPreview = true }: { onClose: () => 
 
       <Section title={t('settings.feedback')}>
         {hapticsSupported() && (
-          <Row label={t('settings.haptics')} desc={t('settings.haptics.desc')} htmlFor="haptics">
+          <Row
+            label={t('settings.haptics')}
+            desc={hapticsExperimental ? `${t('settings.haptics.desc')}. ${t('settings.haptics.experimental')}` : t('settings.haptics.desc')}
+            htmlFor="haptics"
+          >
             <Switch id="haptics" label={t('settings.haptics')} checked={s.haptics} onChange={(haptics) => s.set({ haptics })} />
           </Row>
         )}

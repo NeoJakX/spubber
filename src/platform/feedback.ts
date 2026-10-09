@@ -12,8 +12,36 @@ let hapticsLoading: Promise<void> | null = null
 
 const isNative = Capacitor.isNativePlatform()
 
+/** iPhone/iPad web: no Vibration API. Since iOS 18, toggling a native `<input switch>` gives a haptic tick. */
+const iosWeb = (() => {
+  if (isNative || typeof navigator === 'undefined') return false
+  const ua = navigator.userAgent
+  const ios = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  const major = Number(/OS (\d+)_/.exec(ua)?.[1] ?? 0)
+  return ios && major >= 18
+})()
+let iosSwitch: HTMLLabelElement | null = null
+function iosTick() {
+  if (!iosSwitch) {
+    const label = document.createElement('label')
+    label.setAttribute('aria-hidden', 'true')
+    label.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none'
+    const input = document.createElement('input')
+    input.type = 'checkbox'
+    input.setAttribute('switch', '')
+    input.tabIndex = -1
+    label.appendChild(input)
+    document.body.appendChild(label)
+    iosSwitch = label
+  }
+  iosSwitch.click()
+}
+
+/** True when the haptic option only works through the iOS web workaround. */
+export const hapticsExperimental = iosWeb
+
 export function hapticsSupported(): boolean {
-  if (isNative) return true
+  if (isNative || iosWeb) return true
   try {
     return 'vibrate' in navigator && window.matchMedia('(pointer: coarse)').matches
   } catch {
@@ -38,6 +66,8 @@ export const haptic = {
   tick() {
     if (isNative) {
       void haptics?.selectionChanged().catch(() => {})
+    } else if (iosWeb) {
+      iosTick()
     } else {
       try {
         navigator.vibrate?.(4)
