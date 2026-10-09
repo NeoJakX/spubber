@@ -369,6 +369,9 @@ function ReaderView({ book, blocks }: Loaded) {
         </div>
       </footer>
 
+      {playing && settings.mode === 'tap' && (
+        <div className="fixed inset-0 z-30" onClick={() => player.pause()} aria-hidden="true" data-testid="tap-to-pause" />
+      )}
       {panel === 'toc' && <TocPanel book={book} stream={stream} index={index} onSeek={seek} onClose={() => setPanel(null)} />}
       {panel === 'bookmarks' && <BookmarksPanel book={book} stream={stream} index={index} onSeek={seek} onClose={() => setPanel(null)} />}
       {panel === 'settings' && <SettingsPanel onClose={() => setPanel(null)} />}

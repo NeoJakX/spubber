@@ -111,7 +111,7 @@ export function BookmarksPanel({
             maxLength={280}
             onChange={(e) => setNote(e.target.value)}
           />
-          <button type="submit" className="btn btn-primary flex-none">
+          <button type="submit" className="btn btn-primary flex-none" aria-label={t('bookmarks.save')}>
             <BookmarkPlus size={18} />
             <span className="hidden sm:inline">{t('bookmarks.save')}</span>
           </button>
